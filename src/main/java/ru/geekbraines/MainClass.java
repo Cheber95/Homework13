@@ -1,5 +1,6 @@
 package ru.geekbraines;
 
+import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
@@ -10,8 +11,6 @@ import java.util.concurrent.locks.ReentrantLock;
 public class MainClass {
     public static final int CARS_COUNT = 4;
 
-    //CyclicBarrier cbStart = new CyclicBarrier(CARS_COUNT);
-
     public static void main(String[] args) {
         System.out.println("ВАЖНОЕ ОБЪЯВЛЕНИЕ >>> Подготовка!!!");
         Race race = new Race(new Road(60), new Tunnel(CARS_COUNT), new Road(40));
@@ -20,14 +19,26 @@ public class MainClass {
             cars[i] = new Car(race, 20 + (int) (Math.random() * 10));
         }
 
-        System.out.println("ВАЖНОЕ ОБЪЯВЛЕНИЕ >>> Гонка началась!!!");
-        Car.getStart();
-
+        Car.start();
+        Car.finish();
         for (int i = 0; i < cars.length; i++) {
             new Thread(cars[i]).start();
         }
 
+        CountDownLatch cdStart = Car.getStart();
+        try {
+            cdStart.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        System.out.println("ВАЖНОЕ ОБЪЯВЛЕНИЕ >>> Гонка началась!!!");
 
+        CountDownLatch cdFinish = Car.getFinish();
+        try {
+            cdFinish.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         System.out.println("ВАЖНОЕ ОБЪЯВЛЕНИЕ >>> Гонка закончилась!!!");
     }
 }

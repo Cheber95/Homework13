@@ -10,7 +10,7 @@ public class Car implements Runnable{
     private int speed;
     private String name;
 
-    private static CyclicBarrier cbStart;
+    private static CountDownLatch cdStart;
     private static CountDownLatch cdFinish;
 
     public String getName() {
@@ -31,12 +31,12 @@ public class Car implements Runnable{
 
 
 
-    public static void getStart() {
-        cbStart = new CyclicBarrier(CARS_COUNT);
+    public static void start() {
+        cdStart = new CountDownLatch(CARS_COUNT);
     }
-    public static void getFinish() {
-        cdFinish = new CountDownLatch(CARS_COUNT);
-    }
+    public static CountDownLatch getStart() {return cdStart; }
+    public static void finish() { cdFinish = new CountDownLatch(CARS_COUNT); }
+    public static CountDownLatch getFinish() {return cdFinish; }
 
     @Override
     public void run() {
@@ -46,13 +46,17 @@ public class Car implements Runnable{
 
             Thread.sleep(500 + (int)(Math.random() * 800));
             System.out.println(this.name + " готов");
-            cbStart.await();
+            cdStart.countDown();
+            cdStart.await();
 
-            //System.out.println(System.currentTimeMillis());
             for (int i = 0; i < race.getStages().size(); i++) {
                 race.getStages().get(i).go(this);
             }
-            cbFinish.
+            cdFinish.countDown();
+            if (cdFinish.getCount() == CARS_COUNT - 1) {
+                System.out.println("ВАЖНОЕ ОБЪЯВЛЕНИЕ >>> " + this.name + " победитель!");
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
